@@ -1,0 +1,161 @@
+<script src="assets/javascripts/processing.js"></script>
+<script type="text/processing" data-processing-target="mycanvas">
+  class Ship {
+      int xpos, ypos;
+      float ang, xratio, xspeed,yspeed, xratio, yratio, grav;
+      boolean reducegrav;
+      Ship(int x_position, int y_position, int s){
+          xspeed = s;
+          xpos = x_position;
+          ypos = y_position;
+          yspeed = 0;
+          xratio = 1;
+          yratio = 0;
+          reducegrav = false;
+          dir = 0;
+          grav = 1;
+      }
+  }
+  PShape shipshape;
+  ships = [];
+  cap = 55;
+   Ship oneP =  new Ship(200, 200, 0)
+   println("setting up")
+   ships[0] = oneP
+   var acclr = 20;
+   shipshape = loadShape("launched.svg");
+   if (shipshape == null) {
+     alert("failed")
+   }
+   void setup()
+   {
+      planets = [[10,43,50,100],
+        [300,200,20,1000]];
+
+      size(800,400);
+      background(125);
+      fill(255);
+      frameRate( 15 );
+      for( i=0; i< planets.length; i++){
+          ellipse(planets[i][0],planets[i][1],planets[i][2],planets[i][2])
+      }
+    }
+
+    void draw(){
+      background(125);
+      fill(255);
+      for( i=0; i< planets.length; i++){
+          ellipse(planets[i][0],planets[i][1],planets[i][2],planets[i][2])
+      }
+      for( i=0; i< ships.length; i++){
+          ship = ships[i];
+          if (ship.reducegrav && ship.grav > 0) {
+              ship.grav -= .25;
+          }
+          if (!ship.reducegrav && ship.grav < 1) {
+              ship.grav += .25;
+          }
+          for( j = 0; j < planets.length; j++)
+          {
+              xdif = ship.xpos-planets[j][0];
+              ydif = ship.ypos-planets[j][1];
+              accler = (planets[j][3]/sqrt(ydif*ydif+xdif*xdif));
+              
+              ship.xspeed -= accler * xdif / sqrt(ydif*ydif + xdif*xdif)*ship.grav;
+              ship.yspeed -= accler * ydif / sqrt(ydif*ydif + xdif*xdif)*ship.grav;
+              
+          }
+          totalspeed = sqrt(ship.xspeed * ship.xspeed + ship.yspeed*ship.yspeed);
+          if(totalspeed > cap) {
+              ship.xspeed = ship.xspeed*cap/totalspeed;
+              ship.yspeed = ship.yspeed*cap/totalspeed;
+          }
+          translate(ship.xpos, ship.ypos);
+          rotate(ship.ang+PI*3/4);
+
+          if (ship.xspeed > 1) {
+              ship.xpos += pow(ship.xspeed, .5);
+          }else if (ship.xspeed < -1) {
+              ship.xpos -= pow(abs(ship.xspeed), .5);
+          }else{
+              ship.xpos += ship.xspeed;
+          }    
+
+          if (ship.yspeed > 1) {
+              ship.ypos += pow(ship.yspeed, .5);
+          }else if (ship.yspeed < -1) {
+              ship.ypos -= pow(abs(ship.yspeed), .5);
+          }else{
+              ship.ypos += ship.yspeed;
+          }
+
+
+          if( ship.xpos < 0) {
+              ship.xpos = width;
+          }
+          else if(ship.xpos > width)
+          {
+              ship.xpos = 0;
+          }
+          if( ship.ypos < 0) {
+              ship.ypos = height;
+          }
+          else if(ship.ypos > height)
+          {
+              ship.ypos = 0;
+          } 
+          shape(shipshape,0, 0, 30, 30)
+          resetMatrix();
+      }
+      println("xpeed " + oneP.xspeed)
+      println("yspeed " + oneP.yspeed)
+      println("angle " + oneP.ang)
+      println("xratio: " + oneP.xratio)
+      //text("Hello Web!",20,20);
+      //println("Hello ErrorLog!");
+
+  }
+  void keyPressed()
+  {
+      if( key == CODED) {
+          if ( keyCode == UP ) {
+              oneP.xspeed += acclr * oneP.xratio;
+              oneP.yspeed += acclr * oneP.yratio;
+          }
+          if ( keyCode == DOWN ){
+              oneP.reducegrav = true
+          }
+          if ( keyCode == LEFT ){
+              oneP.ang -= .1
+              while (oneP.ang < 0) {
+                  oneP.ang += TWO_PI;
+              }
+              oneP.xratio = cos(oneP.ang) / sqrt(sin(oneP.ang)*sin(oneP.ang) + cos(oneP.ang)*cos(oneP.ang))
+              oneP.yratio = sin(oneP.ang) / sqrt(sin(oneP.ang)*sin(oneP.ang) + cos(oneP.ang)*cos(oneP.ang))
+          }
+          if ( keyCode == RIGHT ){
+              oneP.ang += .1
+              while (oneP.ang > TWO_PI ) {
+                  oneP.ang -= TWO_PI;
+              }
+              oneP.xratio = cos(oneP.ang) / sqrt(sin(oneP.ang)*sin(oneP.ang) + cos(oneP.ang)*cos(oneP.ang))
+              oneP.yratio = sin(oneP.ang) / sqrt(sin(oneP.ang)*sin(oneP.ang) + cos(oneP.ang)*cos(oneP.ang))
+          }
+      }
+      else
+      {
+          alert("blimey")
+      }
+  }
+  void keyReleased()
+  {
+      if( key == CODED) {
+          if ( keyCode == DOWN ){
+              oneP.reducegrav = false;
+          }
+      }
+  }
+
+  
+</script>
+<canvas id="mycanvas"></canvas>
